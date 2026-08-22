@@ -8,6 +8,7 @@
 		"build": "wrangler types && vite build",
 		"preview": "npm run build && wrangler dev --port 4173",
 		"deploy": "npm run build && wrangler deploy",
+		"cf:upload": "npm run build && wrangler versions upload",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "wrangler types && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -16,6 +17,10 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"gen": "wrangler types"
+	},
+	"allowScripts": {
+		"esbuild": true,
+		"workerd": true
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
