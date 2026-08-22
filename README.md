@@ -1,32 +1,50 @@
-# PadelIndex
+# SwimIndex
 
-Unabhängige Rangliste für Padel-Amateure. SvelteKit auf Cloudflare Pages, Daten in Supabase.
-
-Die Landing-Page, das Vereins-Widget und der Rating-Kern liegen in diesem Repo. Phase 1: Site, Waitlist, öffentliches Club-Leaderboard. Noch kein Login und kein Match-Melden.
+Clock-based swimming rankings: verified meet times scored with a World Aquatics–style points table, plus a fair **age-adjusted** index for developing swimmers.
 
 ## Stack
 
-- **SvelteKit** mit `@sveltejs/adapter-cloudflare`
-- **Cloudflare Pages** — Hosting für Landing, App, API, `embed.js`
-- **Supabase** — Postgres, Auth, später Realtime und Storage
-- **GitHub** — nur Source (`padelindex/padelindex`). Hosting ist Cloudflare Pages, nicht GitHub Pages.
+- **SvelteKit** (Svelte 5 + TypeScript)
+- **Supabase** (Postgres, Auth, Edge Functions, RLS)
+- **Cloudflare Pages** (`@sveltejs/adapter-cloudflare`)
+- **Tailwind CSS** + **Zod**
 
-## Lokal starten
+## Domain highlights (v2)
+
+- Canonical **events catalog** (legal stroke × distance × course only)
+- **SCY / SCM / LCM** kept separate; conversions are labeled estimates
+- **Open Index** + **Age-Adjusted Index** (`1000 × (standard / time)³`)
+- **Seasonal age** (default Sep 1) for age-group bucketing
+- DQ + split-sum checks on coach verify
+- Recruiting-standard badges from seed cuts (update yearly)
+- Scheduled Edge Functions: nightly index recompute + season aging-up
+
+## Local setup
 
 ```bash
 cp .env.example .env
-# Keys eintragen, siehe unten
+# set PUBLIC_SUPABASE_URL + PUBLIC_SUPABASE_ANON_KEY
 npm install
 npm run dev
 ```
 
-- Site: [http://localhost:5173](http://localhost:5173)
-- Club-Seite: `/c/stc-oberland`
-- Widget-API: `/api/v1/clubs/stc-oberland/leaderboard?limit=10`
-- iframe-Fallback: `/embed/stc-oberland`
-- Widget-Skript: `/embed.js`
+Without Supabase keys, pages render with **demo data**.
 
-Ohne Supabase-Keys läuft die Landing trotzdem. Waitlist und Leaderboard antworten dann mit 503.
+### Database
+
+Apply in order:
+
+1. `supabase/migrations/0001_schema.sql`
+2. `supabase/migrations/0002_index_functions.sql`
+3. `supabase/migrations/0003_rls.sql`
+4. Seed files under `supabase/seed/` (events → standards → conversions → recruiting)
+
+### Edge Functions
+
+- `supabase/functions/recompute-indices` — nightly composite recompute
+- `supabase/functions/age-group-aging-up` — season-boundary seasonal age refresh
+
+## Scripts
 
 ```bash
 npm test
@@ -34,68 +52,15 @@ npm run check
 npm run build
 ```
 
-## Was du anlegen musst
+## Docs
 
-### 1. Supabase-Projekt
+- [Index formula](docs/index-formula.md)
+- [Implementation plan](docs/implementation-plan.md)
 
-1. Projekt in der EU anlegen (z.B. `eu-central-1`).
-2. SQL in dieser Reihenfolge im SQL Editor ausführen:
-   - [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql)
-   - [`supabase/migrations/0002_apply_match_rating.sql`](supabase/migrations/0002_apply_match_rating.sql)
-   - [`supabase/migrations/0003_external_claims.sql`](supabase/migrations/0003_external_claims.sql)
-3. Authentication → Providers: **Email** (Magic Link reicht für den Pilot).
-4. Authentication → URL Configuration: Site URL = Cloudflare-URL (lokal `http://localhost:5173`).
-5. Keys unter Project Settings → API:
-   - Project URL → `PUBLIC_SUPABASE_URL`
-   - `anon` `public` → `PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (nie ins Client-Bundle, nie committen)
+## Known integrity checks
 
-Storage-Bucket `ranking-claims` erst in Phase 2 (Screenshot-Nachweise).
-
-### 2. Cloudflare Workers
-
-1. Cloudflare-Account, Workers & Pages aktivieren.
-2. Worker `padelindex` an das GitHub-Repo `padelindex/padelindex` koppeln (Workers Builds).
-3. `PUBLIC_SUPABASE_*` stehen in `wrangler.toml` (`[vars]`). `SUPABASE_SERVICE_ROLE_KEY` muss unter Workers → `padelindex` → Settings → Variables and Secrets als **encrypted Secret** liegen — nicht als Build-Variable. Klartext-Vars aus dem Dashboard löscht `wrangler deploy`.
-
-4. Optional: Custom Domain `padelindex.de` auf diesen Worker.
-
-Das alte `padelindex.github.io` ist kein Host mehr — GitHub Pages dort deaktivieren.
-
-### 3. Lokal `.env`
-
-Siehe [`.env.example`](.env.example). Datei nicht committen.
-
-## Repo-Struktur
-
-| Pfad | Inhalt |
-|---|---|
-| `src/routes/+page.svelte` | Landing |
-| `src/routes/c/[slug]` | Öffentliche Vereinsseite |
-| `src/routes/embed/[slug]` | iframe-Fallback fürs Widget |
-| `src/routes/api/waitlist` | Waitlist → Postgres |
-| `src/routes/api/v1/clubs/[slug]/leaderboard` | Widget-API (CORS, Cache 5 min) |
-| `static/embed.js` | Custom Element für Vereinswebsites |
-| `src/lib/server/rating/` | OpenSkill-Kern, Confirm-Worker, Claims |
-| `supabase/migrations/` | Schema + RPCs |
-| `docs/` | Widget-Konzept, Verification-Pipeline |
-
-## Nächste Schritte (nach Phase 1)
-
-1. Supabase + Cloudflare wie oben verbinden, Waitlist einmal testen.
-2. **Auth + Onboarding** — Magic Link, Profil, Club-Mitgliedschaft, Fragebogen-Seed.
-3. **Match-Flow** — Ergebnis eintragen, Gegner bestätigt, `applyRatingForMatch()`.
-4. Cloudflare Cron (`wrangler.toml`) für die 48h-Frist.
-5. Realtime für pending Matches, danach Claims (Storage + Vision).
-
-## Widget einbauen (Pilot)
-
-Sobald die Domain steht:
-
-```html
-<script src="https://padelindex.de/embed.js" async></script>
-<padelindex-leaderboard club="stc-oberland" limit="10" accent="#0F6E5C">
-</padelindex-leaderboard>
-```
-
-Lokal: `api="http://localhost:5173/api/v1"` am Custom Element setzen.
+- Splits sum vs final (±100 ms default)
+- DQ never enters index / PBs
+- Seasonal age on Sep 1 boundary
+- Converted times never overwrite recorded times
+- Relay legs excluded from individual composite
