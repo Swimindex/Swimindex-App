@@ -52,15 +52,21 @@ npm run cf:upload # build + wrangler versions upload (preview version)
 
 ## Cloudflare Workers Builds
 
-Wrangler generates `.svelte-kit/cloudflare/_worker.js` via `build.command` in `wrangler.jsonc` (`npx vite build`) before upload — so a deploy command of only `npx wrangler versions upload` still works.
+Wrangler generates `.svelte-kit/cloudflare/_worker.js` via `build.command` in `wrangler.jsonc` (`npx vite build`) before upload.
+
+**Why workers.dev can still say “Hello world”:**  
+`npx wrangler versions upload` only saves a **preview version**. It does **not** replace the active deployment. The stub Worker stays live until you promote a version or run `npx wrangler deploy`. Also merge the app to your Cloudflare **production branch** (`main` today only has the README).
 
 Recommended dashboard settings (Worker → **Settings → Build**):
 
 | Setting | Value |
 | --- | --- |
-| **Build command** | `npm run build` (optional; wrangler also builds) |
+| **Production branch** | `main` (after merging PR #1) |
+| **Build command** | optional (`npm run build`) |
 | **Deploy command** (production) | `npx wrangler deploy` |
 | **Non-production deploy command** | `npx wrangler versions upload` |
+
+Quick unblock without merging: in the Worker → **Deployments**, open the successful build’s version and **Deploy** it to 100%.
 
 `PUBLIC_DEMO_MODE=true` is set in `wrangler.jsonc` vars for the client demo (leave Supabase keys empty).
 
