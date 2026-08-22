@@ -6,7 +6,7 @@ Clock-based swimming rankings: verified meet times scored with a World Aquaticsâ
 
 - **SvelteKit** (Svelte 5 + TypeScript)
 - **Supabase** (Postgres, Auth, Edge Functions, RLS)
-- **Cloudflare Pages** (`@sveltejs/adapter-cloudflare`)
+- **Cloudflare Workers** (`@sveltejs/adapter-cloudflare` + static assets)
 - **Tailwind CSS** + **Zod**
 
 ## Domain highlights (v2)
@@ -50,6 +50,8 @@ Apply in order:
 npm test
 npm run check
 npm run build
+npm run preview   # wrangler dev after build
+npm run deploy    # wrangler deploy after build
 ```
 
 ## Docs
