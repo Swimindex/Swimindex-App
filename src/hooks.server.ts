@@ -1,10 +1,35 @@
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import { createServerClient } from '@supabase/ssr';
+import {
+	DEMO_PERSONA_COOKIE,
+	isDemoMode,
+	personaFromCookie,
+	profileForPersona
+} from '$lib/demo/mode';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const url = PUBLIC_SUPABASE_URL || '';
-	const key = PUBLIC_SUPABASE_ANON_KEY || '';
+	const demo = isDemoMode(env.PUBLIC_DEMO_MODE, env.PUBLIC_SUPABASE_URL);
+	event.locals.demoMode = demo;
+
+	if (demo) {
+		const persona = personaFromCookie(event.cookies.get(DEMO_PERSONA_COOKIE));
+		event.locals.demoPersona = persona;
+		event.locals.supabase = null;
+		event.locals.session = null;
+		event.locals.user = null;
+		event.locals.profile = profileForPersona(persona);
+
+		return resolve(event, {
+			filterSerializedResponseHeaders(name) {
+				return name === 'content-range' || name === 'x-supabase-api-version';
+			}
+		});
+	}
+
+	event.locals.demoPersona = null;
+	const url = env.PUBLIC_SUPABASE_URL || '';
+	const key = env.PUBLIC_SUPABASE_ANON_KEY || '';
 
 	if (url && key) {
 		event.locals.supabase = createServerClient(url, key, {

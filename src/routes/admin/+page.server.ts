@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const isAdmin = locals.profile?.role === 'admin';
+	const isAdmin = locals.profile?.role === 'admin' || locals.demoMode;
 
 	const tables = [
 		{
@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	];
 
-	if (locals.supabase && isAdmin) {
+	if (!locals.demoMode && locals.supabase && locals.profile?.role === 'admin') {
 		for (const t of tables) {
 			const { count } = await locals.supabase
 				.from(t.key)
@@ -45,5 +45,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 	}
 
-	return { isAdmin, tables };
+	return {
+		isAdmin: Boolean(isAdmin && locals.profile?.role === 'admin'),
+		demoMode: locals.demoMode,
+		tables
+	};
 };

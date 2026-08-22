@@ -5,7 +5,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const course = url.searchParams.get('course');
 	const mode = url.searchParams.get('mode') === 'age_adjusted' ? 'age_adjusted' : 'open';
 
-	if (locals.supabase) {
+	if (!locals.demoMode && locals.supabase) {
 		const { data } = await locals.supabase
 			.from('swimmer_indices')
 			.select(
@@ -21,6 +21,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		if (data && data.length > 0) {
 			return {
 				mode,
+				demoMode: false,
 				rankings: data.map((row, i) => {
 					const p = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
 					return {
@@ -44,6 +45,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	return {
 		mode,
+		demoMode: locals.demoMode,
 		rankings: DEMO_RANKINGS.map((r) => ({ ...r, meet_level: null as null })),
 		source: 'demo' as const
 	};

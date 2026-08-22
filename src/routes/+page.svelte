@@ -31,14 +31,19 @@
 			</p>
 			<div class="mt-8 flex flex-wrap gap-3">
 				<a
-					href="/rankings"
+					href="/demo"
 					class="rounded-lg bg-teal-300 px-5 py-2.5 font-semibold text-teal-950 transition hover:bg-teal-200"
+					>Start client demo</a
+				>
+				<a
+					href="/rankings"
+					class="rounded-lg border border-white/30 px-5 py-2.5 font-medium text-white transition hover:bg-white/10"
 					>View rankings</a
 				>
 				<a
-					href="/signup"
+					href="/admin"
 					class="rounded-lg border border-white/30 px-5 py-2.5 font-medium text-white transition hover:bg-white/10"
-					>Create profile</a
+					>Admin dashboard</a
 				>
 			</div>
 		</div>

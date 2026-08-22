@@ -1,5 +1,6 @@
 import type { Profile } from '$lib/types/swim';
 import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
+import type { DemoPersona } from '$lib/demo/mode';
 
 declare global {
 	namespace App {
@@ -8,6 +9,8 @@ declare global {
 			session: Session | null;
 			user: User | null;
 			profile: Profile | null;
+			demoMode: boolean;
+			demoPersona: DemoPersona | null;
 		}
 		interface Platform {
 			env: {

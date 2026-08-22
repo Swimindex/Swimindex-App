@@ -28,7 +28,10 @@
 		<div>
 			<h1 class="text-3xl font-semibold text-teal-950">Rankings</h1>
 			<p class="mt-1 text-sm text-slate-600">
-				Course-specific. Toggle Open vs Age-Adjusted. Demo data when Supabase is offline.
+				Course-specific. Toggle Open vs Age-Adjusted.
+				{#if data.demoMode}
+					<span class="text-amber-800">Showing sample rankings for the client demo.</span>
+				{/if}
 			</p>
 		</div>
 		<AgeGroupToggle bind:value={mode} />

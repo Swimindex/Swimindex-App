@@ -3,9 +3,10 @@
 	import SplitsInput from '$lib/components/SplitsInput.svelte';
 	import TimeInput from '$lib/components/TimeInput.svelte';
 	import type { Course, EventCatalogRow } from '$lib/types/swim';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
+	import { enhance } from '$app/forms';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let eventId = $state<string | null>(null);
 	let selected = $state<EventCatalogRow | null>(null);
@@ -24,10 +25,24 @@
 		<h1 class="text-3xl font-semibold text-teal-950">Submit a swim</h1>
 		<p class="mt-1 text-sm text-slate-600">
 			Pending coach verification. DQ’d swims never enter the index.
+			{#if data.demoMode}
+				<span class="text-amber-800">Demo: submissions aren’t persisted.</span>
+			{/if}
 		</p>
 	</header>
 
-	<form method="POST" class="space-y-6 rounded-xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+	{#if form?.success}
+		<p class="rounded-lg bg-teal-50 px-4 py-3 text-sm text-teal-900">{form.message}</p>
+	{/if}
+	{#if form?.error}
+		<p class="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800">{form.error}</p>
+	{/if}
+
+	<form
+		method="POST"
+		class="space-y-6 rounded-xl border border-slate-200 bg-white/80 p-6 shadow-sm"
+		use:enhance
+	>
 		<EventSelector
 			events={data.events}
 			bind:value={eventId}
@@ -97,7 +112,11 @@
 			class="rounded-lg bg-teal-700 px-5 py-2.5 font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
 			disabled={!data.canSubmit || !eventId || timeMs == null}
 		>
-			{data.canSubmit ? 'Submit for verification' : 'Sign in to submit (demo UI only)'}
+			{data.canSubmit
+				? data.demoMode
+					? 'Submit (demo)'
+					: 'Submit for verification'
+				: 'Sign in to submit'}
 		</button>
 	</form>
 </div>

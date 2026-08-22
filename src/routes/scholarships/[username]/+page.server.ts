@@ -2,7 +2,7 @@ import { DEMO_PROFILE, DEMO_STANDARDS_MET } from '$lib/demo/data';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	if (locals.supabase) {
+	if (!locals.demoMode && locals.supabase) {
 		const { data: profile } = await locals.supabase
 			.from('profiles')
 			.select('*')
@@ -29,7 +29,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					cut_time_ms: Number(s.cut_time_ms ?? 0),
 					pb_time_ms: Number(s.pb_time_ms ?? 0)
 				})),
-				source: 'supabase' as const
+				source: 'supabase' as const,
+				demoMode: false
 			};
 		}
 	}
@@ -37,6 +38,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	return {
 		profile: DEMO_PROFILE,
 		standards: DEMO_STANDARDS_MET,
-		source: 'demo' as const
+		source: 'demo' as const,
+		demoMode: locals.demoMode
 	};
 };

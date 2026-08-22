@@ -19,30 +19,25 @@ Clock-based swimming rankings: verified meet times scored with a World Aquatics�
 - Recruiting-standard badges from seed cuts (update yearly)
 - Scheduled Edge Functions: nightly index recompute + season aging-up
 
-## Local setup
+## Local setup (demo / client pitch)
 
 ```bash
-cp .env.example .env
-# set PUBLIC_SUPABASE_URL + PUBLIC_SUPABASE_ANON_KEY
+cp .env.example .env   # PUBLIC_DEMO_MODE=true by default
 npm install
 npm run dev
 ```
 
-Without Supabase keys, pages render with **demo data**.
+Open `/` → **Start client demo**, or use the header persona switcher:
 
-### Database
+- **Swimmer** — profile, PBs, scholarships, submit
+- **Coach** — verify queue (DQ + split checks)
+- **Admin** — reference tables & scheduled jobs
 
-Apply in order:
+No Supabase account required. All data is sample.
 
-1. `supabase/migrations/0001_schema.sql`
-2. `supabase/migrations/0002_index_functions.sql`
-3. `supabase/migrations/0003_rls.sql`
-4. Seed files under `supabase/seed/` (events → standards → conversions → recruiting)
+### Live backend (later)
 
-### Edge Functions
-
-- `supabase/functions/recompute-indices` — nightly composite recompute
-- `supabase/functions/age-group-aging-up` — season-boundary seasonal age refresh
+Set `PUBLIC_DEMO_MODE=false` and fill Supabase keys in `.env`, then apply migrations + seeds.
 
 ## Scripts
 

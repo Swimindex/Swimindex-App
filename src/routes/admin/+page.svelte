@@ -15,9 +15,13 @@
 		</p>
 	</header>
 
-	{#if !data.isAdmin}
+	{#if data.demoMode}
 		<p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
-			Admin role required for edits. Read-only demo counts shown.
+			Demo admin — sample table counts and scheduled-job list for client walkthroughs.
+		</p>
+	{:else if !data.isAdmin}
+		<p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
+			Admin role required for edits.
 		</p>
 	{/if}
 

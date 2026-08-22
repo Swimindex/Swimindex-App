@@ -1,9 +1,8 @@
 import { DEMO_PBS, DEMO_PROFILE } from '$lib/demo/data';
 import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	if (locals.supabase) {
+	if (!locals.demoMode && locals.supabase) {
 		const { data: profile } = await locals.supabase
 			.from('profiles')
 			.select('*')
@@ -13,7 +12,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		if (profile) {
 			const { data: pbs } = await locals.supabase
 				.from('personal_bests')
-				.select('time_ms, course, achieved_on, events_catalog(label), open_event_index:performances(open_event_index)')
+				.select(
+					'time_ms, course, achieved_on, events_catalog(label)'
+				)
 				.eq('swimmer_id', profile.id);
 
 			const { data: idx } = await locals.supabase
@@ -35,21 +36,28 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					};
 				}),
 				open_index: idx?.open_index != null ? Number(idx.open_index) : null,
-				age_adjusted_index: idx?.age_adjusted_index != null ? Number(idx.age_adjusted_index) : null,
-				source: 'supabase' as const
+				age_adjusted_index:
+					idx?.age_adjusted_index != null ? Number(idx.age_adjusted_index) : null,
+				source: 'supabase' as const,
+				demoMode: false
 			};
 		}
 	}
 
-	if (params.username !== DEMO_PROFILE.username && params.username !== 'demo') {
-		// Still show demo for unknown usernames in offline mode
-	}
-
 	return {
-		profile: { ...DEMO_PROFILE, username: params.username === 'demo' ? 'maya.chen' : params.username === DEMO_PROFILE.username ? DEMO_PROFILE.username : DEMO_PROFILE.username },
+		profile: {
+			...DEMO_PROFILE,
+			username:
+				params.username === 'demo' || !params.username
+					? DEMO_PROFILE.username
+					: params.username === DEMO_PROFILE.username
+						? DEMO_PROFILE.username
+						: DEMO_PROFILE.username
+		},
 		pbs: DEMO_PBS,
 		open_index: 912.4,
 		age_adjusted_index: 1048.2,
-		source: 'demo' as const
+		source: 'demo' as const,
+		demoMode: locals.demoMode
 	};
 };

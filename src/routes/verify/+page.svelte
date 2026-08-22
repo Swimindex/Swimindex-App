@@ -3,9 +3,9 @@
 	import PacingChart from '$lib/components/PacingChart.svelte';
 	import { formatSwimTime } from '$lib/swim/time';
 	import { splitsMatchFinal } from '$lib/swim/splits';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 	const tolerance = 100;
 </script>
 
@@ -19,9 +19,19 @@
 		</p>
 	</header>
 
-	{#if !data.canVerify}
+	{#if form?.success}
+		<p class="rounded-lg bg-teal-50 px-4 py-3 text-sm text-teal-900">
+			{form.message ?? 'Updated.'}
+		</p>
+	{/if}
+
+	{#if data.demoMode}
 		<p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
-			Coach or admin role required for actions. Showing demo queue.
+			Demo queue — approve/reject runs the UI flow only (nothing is saved).
+		</p>
+	{:else if !data.canVerify}
+		<p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-950">
+			Coach or admin role required for actions.
 		</p>
 	{/if}
 
